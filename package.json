@@ -1,0 +1,58 @@
+{
+  "name": "@oniohq/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server that lets AI assistants read and change your Onio wishlists through the public API.",
+  "keywords": [
+    "mcp",
+    "onio",
+    "wishlist"
+  ],
+  "homepage": "https://developers.onio.app/guides/ai-assistants",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oniohq/mcp-server.git"
+  },
+  "bugs": "https://github.com/oniohq/mcp-server/issues",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "onio-mcp-server": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "spec:fetch": "curl -fsS https://web.onio.app/api/v1/openapi.json -o openapi.json && prettier --write openapi.json",
+    "spec:gen": "openapi-typescript openapi.json --default-non-nullable false -o src/generated/openapi.ts && prettier --write src/generated/openapi.ts",
+    "spec:sync": "bun run spec:fetch && bun run spec:gen",
+    "prepublishOnly": "bun run typecheck && bun run test && bun run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "openapi-fetch": "^0.17.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22",
+    "eslint": "^10.15.0",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.73.0",
+    "vitest": "^5.1.1"
+  }
+}

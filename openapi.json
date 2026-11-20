@@ -1,0 +1,1443 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/wishlists": {
+      "get": {
+        "description": "Returns the wishlists you own, oldest first. Lists that others share with you are not included.",
+        "operationId": "listWishlists",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 50 }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "The `nextCursor` of the previous page",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of wishlists",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/WishlistPage" } }
+            }
+          },
+          "400": {
+            "description": "Invalid `limit` or `cursor`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid `limit` or `cursor`",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:read` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "List wishlists",
+        "tags": ["Wishlists"]
+      },
+      "post": {
+        "description": "Creates a Private wishlist. Share it with `POST /api/v1/wishlists/{wishlistId}/share`.",
+        "operationId": "createWishlist",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateWishlist" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new wishlist",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Wishlist" } }
+            }
+          },
+          "400": {
+            "description": "The request body is invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request body: `title`: Too small: expected string to have >=1 characters",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:write` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Your wishlists changed during the request. Retry it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Your wishlists changed during the request. Try again.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Create a wishlist",
+        "tags": ["Wishlists"]
+      }
+    },
+    "/api/v1/wishlists/{wishlistId}": {
+      "get": {
+        "operationId": "getWishlist",
+        "parameters": [
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The wishlist",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Wishlist" } }
+            }
+          },
+          "400": {
+            "description": "`wishlistId` is not a UUID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:read` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Get a wishlist",
+        "tags": ["Wishlists"]
+      },
+      "patch": {
+        "description": "Changes the title, occasion or notes. To change the `status`, share the wishlist or stop sharing it.",
+        "operationId": "updateWishlist",
+        "parameters": [
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateWishlist" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated wishlist",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Wishlist" } }
+            }
+          },
+          "400": {
+            "description": "An ID is not a UUID, or the request body is invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request body: `title`: Too small: expected string to have >=1 characters",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:write` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Your wishlists changed during the request. Retry it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Your wishlists changed during the request. Try again.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Update a wishlist",
+        "tags": ["Wishlists"]
+      },
+      "delete": {
+        "description": "Deletes the wishlist and all its wishes. Its share link stops working.",
+        "operationId": "deleteWishlist",
+        "parameters": [
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "The wishlist is deleted" },
+          "400": {
+            "description": "An ID is not a UUID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:delete` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Your wishlists changed during the request. Retry it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Your wishlists changed during the request. Try again.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Delete a wishlist",
+        "tags": ["Wishlists"]
+      }
+    },
+    "/api/v1/wishlists/{wishlistId}/share": {
+      "post": {
+        "description": "Sets the wishlist to Published and returns its share link. An existing link stays the same. If the wishlist was Private, people who follow it see its wishes again.",
+        "operationId": "shareWishlist",
+        "parameters": [
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The share link",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/WishlistShare" } }
+            }
+          },
+          "400": {
+            "description": "An ID is not a UUID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:share` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The wishlist is archived, or your wishlists changed during the request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Wishlist is archived",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Share a wishlist",
+        "tags": ["Wishlists"]
+      },
+      "delete": {
+        "description": "Turns off the share link and sets the wishlist to Private. People who follow the wishlist no longer see its wishes. Sharing it again creates a new link.",
+        "operationId": "unshareWishlist",
+        "parameters": [
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "The wishlist is Private" },
+          "400": {
+            "description": "An ID is not a UUID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:share` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The wishlist is archived, or your wishlists changed during the request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Wishlist is archived",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Stop sharing a wishlist",
+        "tags": ["Wishlists"]
+      }
+    },
+    "/api/v1/wishlists/{wishlistId}/wishes": {
+      "get": {
+        "description": "Returns all wishes of a wishlist you own, oldest first, including private ones.",
+        "operationId": "listWishes",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 50 }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "description": "The `nextCursor` of the previous page",
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of wishes",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/WishPage" } }
+            }
+          },
+          "400": {
+            "description": "Invalid `wishlistId`, `limit` or `cursor`",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:read` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "List wishes",
+        "tags": ["Wishlists"]
+      },
+      "post": {
+        "description": "Adds a wish to a wishlist you own. Archived wishlists take no new wishes.",
+        "operationId": "createWish",
+        "parameters": [
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/CreateWish" } }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The new wish",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Wish" } } }
+          },
+          "400": {
+            "description": "An ID is not a UUID, or the request body is invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request body: `title`: Too small: expected string to have >=1 characters",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishes:write` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 404,
+                  "message": "Wishlist not found",
+                  "error": "Not Found"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The wishlist is archived, or your wishlists changed during the request",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Wishlist is archived",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Add a wish",
+        "tags": ["Wishlists"]
+      }
+    },
+    "/api/v1/wishlists/{wishlistId}/wishes/{wishId}": {
+      "get": {
+        "operationId": "getWish",
+        "parameters": [
+          {
+            "name": "wishId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wish on this wishlist.",
+            "schema": { "format": "uuid", "type": "string" }
+          },
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The wish",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Wish" } } }
+          },
+          "400": {
+            "description": "`wishlistId` or `wishId` is not a UUID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishlists:read` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own, or no wish with this ID on it",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 404, "message": "Wish not found", "error": "Not Found" }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Get a wish",
+        "tags": ["Wishlists"]
+      },
+      "patch": {
+        "description": "If someone is getting this wish, they see the change.",
+        "operationId": "updateWish",
+        "parameters": [
+          {
+            "name": "wishId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wish on this wishlist.",
+            "schema": { "format": "uuid", "type": "string" }
+          },
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateWish" } }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated wish",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Wish" } } }
+          },
+          "400": {
+            "description": "An ID is not a UUID, or the request body is invalid",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Invalid request body: `title`: Too small: expected string to have >=1 characters",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishes:write` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own, or no wish with this ID on it",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 404, "message": "Wish not found", "error": "Not Found" }
+              }
+            }
+          },
+          "409": {
+            "description": "Your wishlists changed during the request. Retry it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Your wishlists changed during the request. Try again.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Update a wish",
+        "tags": ["Wishlists"]
+      },
+      "delete": {
+        "description": "Deletes the wish and its uploaded image. This cannot be undone.",
+        "operationId": "deleteWish",
+        "parameters": [
+          {
+            "name": "wishId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wish on this wishlist.",
+            "schema": { "format": "uuid", "type": "string" }
+          },
+          {
+            "name": "wishlistId",
+            "required": true,
+            "in": "path",
+            "description": "The `id` of a wishlist you own.",
+            "schema": { "format": "uuid", "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": { "description": "The wish is deleted" },
+          "400": {
+            "description": "An ID is not a UUID",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 400,
+                  "message": "Validation failed (uuid is expected)",
+                  "error": "Bad Request"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The access token is missing, invalid or revoked",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 401,
+                  "message": "Missing or invalid access token",
+                  "error": "Unauthorized"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The access token lacks the `wishes:delete` scope",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 403,
+                  "message": "Access token lacks the required scope",
+                  "error": "Forbidden"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No wishlist with this ID that you own, or no wish with this ID on it",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 404, "message": "Wish not found", "error": "Not Found" }
+              }
+            }
+          },
+          "409": {
+            "description": "Your wishlists changed during the request. Retry it.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "statusCode": 409,
+                  "message": "Your wishlists changed during the request. Try again.",
+                  "error": "Conflict"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded; retry after `Retry-After` seconds",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": { "statusCode": 429, "message": "ThrottlerException: Too Many Requests" }
+              }
+            }
+          }
+        },
+        "security": [{ "accessToken": [] }],
+        "summary": "Delete a wish",
+        "tags": ["Wishlists"]
+      }
+    }
+  },
+  "info": {
+    "title": "Onio API",
+    "description": "Read and change your Onio wishlists and wishes from your own tools.",
+    "version": "1.2.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [{ "url": "https://web.onio.app" }],
+  "components": {
+    "securitySchemes": {
+      "accessToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "A personal access token from your Onio profile. It starts with `onio_pat_`."
+      }
+    },
+    "schemas": {
+      "Wishlist": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f6c1a52-8d1e-4b7a-9c2e-1f5d7a9b0c41"
+          },
+          "title": { "type": "string", "example": "Birthday 2027" },
+          "occasion": {
+            "type": "string",
+            "enum": [
+              "birthday",
+              "christmas",
+              "wedding",
+              "baby",
+              "anniversary",
+              "graduation",
+              "housewarming",
+              "other"
+            ],
+            "example": "birthday"
+          },
+          "notes": { "nullable": true, "type": "string", "example": "Anything green is great." },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "published", "archived"],
+            "description": "The app shows `draft` as Private, `published` as Published and `archived` as Archived.",
+            "example": "published"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-02T09:15:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-10T18:42:00.000Z"
+          }
+        },
+        "required": ["id", "title", "occasion", "notes", "status", "createdAt", "updatedAt"]
+      },
+      "WishlistPage": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Wishlist" } },
+          "nextCursor": {
+            "nullable": true,
+            "description": "Pass as `cursor` to get the next page. `null` on the last page.",
+            "type": "string",
+            "example": "MjAyNi0xMS0wMlQwOToxNTowMC4wMDBafDNmNmMxYTUy"
+          }
+        },
+        "required": ["data", "nextCursor"]
+      },
+      "WishlistShare": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "The share link. Anyone with it can view the wishlist.",
+            "example": "https://web.onio.app/s/q3Zr8Kp1vXc0LmN4tYb7HwE2sJd9uFa6GhR5oTi_kWe"
+          }
+        },
+        "required": ["url"]
+      },
+      "Wish": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "7b2e4c19-5a3d-4f8e-b6c1-2d9a0e7f3b58"
+          },
+          "wishlistId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3f6c1a52-8d1e-4b7a-9c2e-1f5d7a9b0c41"
+          },
+          "title": { "type": "string", "example": "Green ceramic watering can" },
+          "description": {
+            "nullable": true,
+            "type": "string",
+            "example": "The 1.5 litre size, please."
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["highest", "high", "normal"],
+            "example": "high"
+          },
+          "priceRange": {
+            "nullable": true,
+            "type": "string",
+            "enum": ["under_15", "15_to_35", "35_to_75", "75_to_150", "over_150"],
+            "example": "15_to_35"
+          },
+          "url": {
+            "nullable": true,
+            "description": "The product link as the owner entered it.",
+            "type": "string",
+            "example": "https://example.com/products/watering-can"
+          },
+          "imageUrl": {
+            "nullable": true,
+            "type": "string",
+            "example": "https://example.com/images/watering-can.jpg"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "published", "archived"],
+            "description": "The app shows `draft` as Private. A `published` wish is visible and has no label. `archived` is not used yet.",
+            "example": "published"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-03T14:20:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-11-08T07:05:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "wishlistId",
+          "title",
+          "description",
+          "priority",
+          "priceRange",
+          "url",
+          "imageUrl",
+          "status",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "WishPage": {
+        "type": "object",
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/Wish" } },
+          "nextCursor": {
+            "nullable": true,
+            "description": "Pass as `cursor` to get the next page. `null` on the last page.",
+            "type": "string",
+            "example": "MjAyNi0xMS0wMlQwOToxNTowMC4wMDBafDNmNmMxYTUy"
+          }
+        },
+        "required": ["data", "nextCursor"]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "message": { "type": "string" },
+          "error": { "type": "string" }
+        },
+        "required": ["statusCode", "message"]
+      },
+      "CreateWishlist": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "example": "Birthday 2027"
+          },
+          "occasion": {
+            "default": "other",
+            "type": "string",
+            "enum": [
+              "birthday",
+              "christmas",
+              "wedding",
+              "baby",
+              "anniversary",
+              "graduation",
+              "housewarming",
+              "other"
+            ]
+          },
+          "notes": { "nullable": true, "type": "string", "maxLength": 500 }
+        },
+        "required": ["title"],
+        "additionalProperties": false
+      },
+      "UpdateWishlist": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "occasion": {
+            "type": "string",
+            "enum": [
+              "birthday",
+              "christmas",
+              "wedding",
+              "baby",
+              "anniversary",
+              "graduation",
+              "housewarming",
+              "other"
+            ]
+          },
+          "notes": { "nullable": true, "type": "string", "maxLength": 500 }
+        },
+        "additionalProperties": false,
+        "description": "Send only the fields to change. `null` clears an optional field."
+      },
+      "CreateWish": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Green ceramic watering can"
+          },
+          "description": { "nullable": true, "type": "string", "maxLength": 300 },
+          "priority": {
+            "default": "normal",
+            "type": "string",
+            "enum": ["highest", "high", "normal"]
+          },
+          "priceRange": {
+            "nullable": true,
+            "type": "string",
+            "enum": ["under_15", "15_to_35", "35_to_75", "75_to_150", "over_150"]
+          },
+          "url": {
+            "description": "Must start with `http://` or `https://`.",
+            "nullable": true,
+            "type": "string",
+            "format": "uri"
+          },
+          "imageUrl": {
+            "description": "A link to an image. Must start with `http://` or `https://`.",
+            "nullable": true,
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "default": "published",
+            "type": "string",
+            "enum": ["draft", "published"],
+            "description": "`draft` is Private, `published` is visible."
+          }
+        },
+        "required": ["title"],
+        "additionalProperties": false
+      },
+      "UpdateWish": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "description": { "nullable": true, "type": "string", "maxLength": 300 },
+          "priority": { "type": "string", "enum": ["highest", "high", "normal"] },
+          "priceRange": {
+            "nullable": true,
+            "type": "string",
+            "enum": ["under_15", "15_to_35", "35_to_75", "75_to_150", "over_150"]
+          },
+          "url": {
+            "description": "Must start with `http://` or `https://`.",
+            "nullable": true,
+            "type": "string",
+            "format": "uri"
+          },
+          "imageUrl": {
+            "description": "A link to an image. Must start with `http://` or `https://`.",
+            "nullable": true,
+            "type": "string",
+            "format": "uri"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["draft", "published"],
+            "description": "`draft` is Private, `published` is visible."
+          }
+        },
+        "additionalProperties": false,
+        "description": "Send only the fields to change. `null` clears an optional field."
+      }
+    }
+  }
+}
