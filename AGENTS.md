@@ -21,7 +21,7 @@ A local stdio MCP server for the Onio public API v1. It is published to npm as `
 ## Release
 
 - To release, run `npm version <patch|minor|major>` and `git push --follow-tags`.
-- `.github/workflows/release.yml` runs on the `v*` tag. It checks that the tag matches `package.json`, runs the checks, and stages the version with `npm stage publish` through trusted publishing. It needs no npm token.
+- `.github/workflows/release.yml` runs on the `v*` tag. It checks that the tag matches `package.json`, runs the checks, and stages the version with `npm stage publish` through trusted publishing. Until npm/cli#9969 is fixed, the OIDC exchange fails for this repository, and the step falls back to the `NPM_TOKEN` secret. When it is fixed, delete the secret and its `env` entry.
 - The trusted publisher may only stage, not publish. The owner approves each staged version with 2FA on npmjs.com or with `npm stage approve <id>`. Keep `npm stage publish` in the workflow.
 - The workflow also packs `build/onio.mcpb` and attaches it to a GitHub release for the tag. Keep the file name `onio.mcpb`. The docs link to `releases/latest/download/onio.mcpb`.
 - Do not run `npm publish` locally.

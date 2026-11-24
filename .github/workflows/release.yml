@@ -39,7 +39,12 @@ jobs:
       - run: bun run test
       - run: bun run build
       - run: bun run mcpb:pack
-      - run: npm stage publish
+      # `verbose` shows why a trusted publishing (OIDC) token exchange fails.
+      # npm tries OIDC first. It uses NPM_TOKEN only when the exchange fails,
+      # which npm/cli#9969 causes for this repository. Remove the token when it is fixed.
+      - run: npm stage publish --loglevel verbose
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Attach the Claude Desktop extension to a GitHub release
         env:
