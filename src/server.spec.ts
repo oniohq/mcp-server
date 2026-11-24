@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -86,6 +87,16 @@ describe('Onio MCP server', () => {
       add_wish: false,
       update_wish: false,
     });
+  });
+
+  it('lists the same tools as the Claude Desktop extension manifest', async () => {
+    await connect(() => json({}));
+    const { tools } = await client!.listTools();
+    const manifest = JSON.parse(
+      readFileSync(new URL('../mcpb/manifest.json', import.meta.url), 'utf8'),
+    ) as { tools: { name: string }[] };
+
+    expect(manifest.tools.map((tool) => tool.name)).toEqual(tools.map((tool) => tool.name));
   });
 
   it('returns a wishlist with the wishes of every page', async () => {

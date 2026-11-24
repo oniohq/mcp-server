@@ -38,6 +38,7 @@
     "spec:fetch": "curl -fsS https://web.onio.app/api/v1/openapi.json -o openapi.json && prettier --write openapi.json",
     "spec:gen": "openapi-typescript openapi.json --default-non-nullable false -o src/generated/openapi.ts && prettier --write src/generated/openapi.ts",
     "spec:sync": "bun run spec:fetch && bun run spec:gen",
+    "mcpb:pack": "bun scripts/pack-mcpb.ts",
     "prepublishOnly": "bun run typecheck && bun run test && bun run build"
   },
   "dependencies": {
@@ -46,6 +47,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@anthropic-ai/mcpb": "^2.1.2",
     "@eslint/js": "^10.0.1",
     "@types/node": "^22",
     "eslint": "^10.15.0",

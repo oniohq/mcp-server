@@ -1,0 +1,78 @@
+{
+  "manifest_version": "0.3",
+  "name": "onio",
+  "display_name": "Onio",
+  "description": "Read and change your Onio wishlists from Claude.",
+  "long_description": "Lets Claude read your Onio wishlists and wishes, including Private and Archived ones. Claude can also create and change wishlists and wishes. It cannot delete or share them.\n\nThe permissions of your token decide what Claude may do. If Claude only needs to look, create a token with only the “Read wishlists and wishes” permission. Claude asks you before each change. Read what it wants to change before you allow it.\n\nThe extension runs on your computer. Claude Desktop keeps your token in the keychain of your operating system. The extension sends your data only to Onio and has no analytics. Your AI provider sees what Claude reads.",
+  "author": {
+    "name": "Onio",
+    "url": "https://onio.app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oniohq/mcp-server.git"
+  },
+  "homepage": "https://onio.app",
+  "documentation": "https://developers.onio.app/guides/ai-assistants",
+  "support": "https://github.com/oniohq/mcp-server/issues",
+  "icon": "icon.png",
+  "server": {
+    "type": "node",
+    "entry_point": "server/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/server/index.js"],
+      "env": {
+        "ONIO_TOKEN": "${user_config.api_token}"
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "list_wishlists",
+      "description": "Lists your wishlists, including Private and Archived ones."
+    },
+    {
+      "name": "get_wishlist",
+      "description": "Gets one wishlist with all its wishes."
+    },
+    {
+      "name": "search_wishes",
+      "description": "Finds wishes by title, description or link."
+    },
+    {
+      "name": "create_wishlist",
+      "description": "Creates a wishlist. It starts as Private. Changes your data."
+    },
+    {
+      "name": "update_wishlist",
+      "description": "Changes the title, occasion or notes of a wishlist. Changes your data."
+    },
+    {
+      "name": "add_wish",
+      "description": "Adds a wish to a wishlist. Changes your data."
+    },
+    {
+      "name": "update_wish",
+      "description": "Changes a wish. Changes your data."
+    }
+  ],
+  "keywords": ["onio", "wishlist", "wishes", "gifts"],
+  "license": "MIT",
+  "privacy_policies": ["https://onio.app/en/legal"],
+  "compatibility": {
+    "platforms": ["darwin", "win32"],
+    "runtimes": {
+      "node": ">=22.0.0"
+    }
+  },
+  "user_config": {
+    "api_token": {
+      "type": "string",
+      "title": "Personal access token",
+      "description": "Create a token in API Access in your Onio profile. It starts with onio_pat_. Its permissions decide what Claude may do.",
+      "sensitive": true,
+      "required": true
+    }
+  }
+}

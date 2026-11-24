@@ -154,7 +154,7 @@ async function collectPages<T>(
 function describeFailure(response: Response, error: unknown, scope: Scope): string {
   switch (response.status) {
     case 401:
-      return 'Onio rejected the token. It is missing, unknown or revoked. Create a new token in your Onio profile and update ONIO_TOKEN.';
+      return 'Onio rejected the token. It is missing, unknown or revoked. Create a new token in your Onio profile. Then replace the old token in the Onio extension settings or in ONIO_TOKEN.';
     case 403:
       return `The token does not have the "${scope}" permission. Create a token with this permission in your Onio profile.`;
     case 429:

@@ -32,6 +32,7 @@ jobs:
       - run: bun run typecheck
       - run: bun run test
       - run: bun run build
+      - run: bun run mcpb:pack
       - run: bun run spec:sync
 
       - name: Check that the committed spec matches the live API
